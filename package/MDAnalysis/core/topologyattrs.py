@@ -1752,6 +1752,107 @@ class Masses(AtomAttr):
     @warn_if_not_unique
     @_pbc_to_wrap
     @check_wrap_and_unwrap
+    def shape_anisotropy(group, wrap=False, unwrap=None, compound='group'):
+        r"""Relative Shape Anisotropy.
+        The relative shape anisotropy ranging from zero as a sphere to one
+        for a rod, expressed as [Theodorou1984]_ :
+
+        .. math::
+            \kappa^{2}=\frac{3}{2}\frac{\lambda_{x}^{4}+\lambda_{y}^{4}
+            +\lambda_{z}^{4}}{(\lambda_{x}^{2}+\lambda_{y}^{2}
+            +\lambda_{z}^{2})^{2}}-\frac{1}{2}
+           
+
+        Parameters
+        ----------
+        wrap : bool, optional
+            If ``True``, move all atoms within the primary unit cell before
+            calculation. [``False``]
+        unwrap : bool, optional
+            If ``True``, compounds will be unwrapped before computing their centers.
+        compound : {'group', 'segments', 'residues', 'molecules', 'fragments'}, optional
+            Which type of component to keep together during unwrapping.
+
+        """
+        atomgroup = group.atoms
+        masses = atomgroup.masses
+
+        com = atomgroup.center_of_mass(
+            wrap=wrap, unwrap=unwrap, compound=compound)
+        if compound != 'group':
+            com = (com * group.masses[:, None]
+                   ).sum(axis=0) / group.masses.sum()
+
+        if wrap:
+            recenteredpos = atomgroup.pack_into_box(inplace=False) - com
+        else:
+            recenteredpos = atomgroup.positions - com
+        tensor = np.zeros((3, 3))
+
+        for x in range(recenteredpos.shape[0]):
+            tensor += masses[x] * np.outer(recenteredpos[x, :],
+                                           recenteredpos[x, :])
+        tensor /= atomgroup.total_mass()
+        eig_vals = np.linalg.eigvalsh(tensor)
+        kappa2 = 3.0/2.0 * np.sum(eig_vals**2) / np.sum(eig_vals)**2 - 0.5
+
+        return kappa2
+
+    transplants[GroupBase].append(('shape_anisotropy', shape_anisotropy))
+
+    @warn_if_not_unique
+    @_pbc_to_wrap
+    @check_wrap_and_unwrap
+    def rg_component_ratios(group, wrap=False, unwrap=None, compound='group'):
+        r"""Rg components scaled by smallest.
+        Here the square of first and second components of the gyration 
+        tensor are scaled the square of the third, expressed as:
+        [Bishop1985]_
+
+        .. math::
+            R_{1}=\frac{\lambda_{1}^{2}}{\lambda_{3}^{2}}
+
+            R_{2}=\frac{\lambda_{2}^{2}}{\lambda_{3}^{2}}
+
+        Parameters
+        ----------
+        wrap : bool, optional
+            If ``True``, move all atoms within the primary unit cell before
+            calculation. [``False``]
+        unwrap : bool, optional
+            If ``True``, compounds will be unwrapped before computing their centers.
+        compound : {'group', 'segments', 'residues', 'molecules', 'fragments'}, optional
+            Which type of component to keep together during unwrapping.
+
+        """
+        atomgroup = group.atoms
+        masses = atomgroup.masses
+
+        com = atomgroup.center_of_mass(
+            wrap=wrap, unwrap=unwrap, compound=compound)
+        if compound != 'group':
+            com = (com * group.masses[:, None]
+                   ).sum(axis=0) / group.masses.sum()
+
+        if wrap:
+            recenteredpos = atomgroup.pack_into_box(inplace=False) - com
+        else:
+            recenteredpos = atomgroup.positions - com
+        tensor = np.zeros((3, 3))
+
+        for x in range(recenteredpos.shape[0]):
+            tensor += masses[x] * np.outer(recenteredpos[x, :],
+                                           recenteredpos[x, :])
+        tensor /= atomgroup.total_mass()
+        eig_vals = np.sort(np.linalg.eigvalsh(tensor))
+
+        return eig_vals[2]/eig_vals[0], eig_vals[1]/eig_vals[0]
+
+    transplants[GroupBase].append(('rg_component_ratios', rg_component_ratios))
+
+    @warn_if_not_unique
+    @_pbc_to_wrap
+    @check_wrap_and_unwrap
     def asphericity(group, wrap=False, unwrap=None, compound='group'):
         """Asphericity.
 

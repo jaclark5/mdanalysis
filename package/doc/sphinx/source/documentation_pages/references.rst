@@ -192,6 +192,30 @@ please cite [Dima2004a]_.
    6564-6570. doi:`10.1021/jp037128y
    <https://doi.org/10.1021/jp037128y>`_
 
+If you calculate shape_anisotropy using
+:meth:`~MDAnalysis.core.group.AtomGroup.shape_anisotropy`,
+:meth:`~MDAnalysis.core.group.ResidueGroup.shape_anisotropy`,
+:meth:`~MDAnalysis.core.group.SegmentGroup.shape_anisotropy`
+please cite [Theodorou1984]_.
+
+.. [Theodorou1984] Theodorou, D. N., & Suter, U. D. (1984). Shape of
+   Unperturbed Linear Polymers: Polypropylene 
+   *Macromolecules*, 18(6),
+   1206-1214. doi:`10.1021/ma00148a028
+   <https://doi.org/10.1021/ma00148a028>`_
+
+If you calculate rg_component_ratios using
+:meth:`~MDAnalysis.core.group.AtomGroup.rg_component_ratios`,
+:meth:`~MDAnalysis.core.group.ResidueGroup.rg_component_ratios`,
+:meth:`~MDAnalysis.core.group.SegmentGroup.rg_component_ratios`
+please cite [Bishop1985]_.
+
+.. [Bishop1985] Bishop, M., & Michels, J. P. J. (1985). The Shape
+   of Ring Polymers 
+   *J. Chem. Phys.*, 82, 1059.
+   doi:`10.1063/1.448949
+   <https://doi.org/10.1063/1.448949>`_
+
 If you calculate asphericities using
 :meth:`~MDAnalysis.core.group.AtomGroup.asphericity`,
 :meth:`~MDAnalysis.core.group.ResidueGroup.asphericity`,

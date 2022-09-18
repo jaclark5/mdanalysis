@@ -994,6 +994,8 @@ class TestUnwrapFlag(object):
                       [-211.8997285, 7059.07470427, -91.32156884],
                       [-721.50785456, -91.32156884, 6509.31735029]]),
         'asphericity': 0.02060121,
+        'shape_anisotropy': 0.020601213406636343,
+        'rg_component_ratios': np.array([1.645, 1.267]),
     }
 
     ref_Unwrap_residues = {
@@ -1009,6 +1011,8 @@ class TestUnwrapFlag(object):
                                        [-1330.617, 19256.178, 3354.832],
                                        [2925.883,  3354.832, 8989.946]]),
         'asphericity': 0.2969491080,
+        'shape_anisotropy': 0.2682684101979803,
+        'rg_component_ratios': np.array([4.296, 1.034]),
     }
 
     ref_noUnwrap = {
@@ -1018,6 +1022,8 @@ class TestUnwrapFlag(object):
                                        [0.0, 98.6542, 0.0],
                                        [0.0, 0.0, 98.65421327]]),
         'asphericity': 1.0,
+        'shape_anisotropy': 1.0,
+        'rg_component_ratios': np.array([np.inf, np.nan]),
     }
 
     ref_Unwrap = {
@@ -1027,6 +1033,8 @@ class TestUnwrapFlag(object):
                                        [0.0, 132.673, 0.0],
                                        [0.0, 0.0, 132.673]]),
         'asphericity': 1.0,
+        'shape_anisotropy': 1.0,
+        'rg_component_ratios': np.array([np.inf, np.nan]),
     }
 
     @pytest.fixture(params=[False, True])  # params indicate shuffling
@@ -1053,7 +1061,10 @@ class TestUnwrapFlag(object):
     @pytest.mark.parametrize('method_name', ('center_of_geometry',
                                              'center_of_mass',
                                              'moment_of_inertia',
-                                             'asphericity'))
+                                             'asphericity',
+                                             'shape_anisotropy',
+                                             'rg_component_ratios',
+                                            ))
     def test_residues(self, ag, unwrap, ref, method_name):
         method = getattr(ag, method_name)
         if unwrap:
@@ -1068,7 +1079,10 @@ class TestUnwrapFlag(object):
     @pytest.mark.parametrize('method_name', ('center_of_geometry',
                                              'center_of_mass',
                                              'moment_of_inertia',
-                                             'asphericity'))
+                                             'asphericity',
+                                             'shape_anisotropy',
+                                             'rg_component_ratios',
+                                            ))
     def test_group(self, unwrap_group, unwrap, ref, method_name):
         method = getattr(unwrap_group, method_name)
         if unwrap:
@@ -1090,6 +1104,8 @@ class TestPBCFlag(object):
         'radius_of_gyration': 119.30368949900134,
         'shape_parameter': 0.6690026954813445,
         'asphericity': 0.5305456387833748,
+        'shape_anisotropy': 0.5305456387833749,
+        'rg_component_ratios': np.array([38.47 ,  7.935]),
         'moment_of_inertia':
             np.array([[152117.06620921, 55149.54042136, -26630.46034023],
                       [55149.54042136, 72869.64061494, 21998.1778074],
@@ -1112,6 +1128,8 @@ class TestPBCFlag(object):
         'radius_of_gyration': 27.713008969174918,
         'shape_parameter': 0.0017390512580463542,
         'asphericity': 0.020601215358731016,
+        'shape_anisotropy': 0.020601213406636232,
+        'rg_component_ratios': np.array([1.645, 1.267]),
         'moment_of_inertia':
             np.array([[7333.79167791, -211.8997285, -721.50785456],
                       [-211.8997285, 7059.07470427, -91.32156884],
@@ -1138,6 +1156,8 @@ class TestPBCFlag(object):
                                              'radius_of_gyration',
                                              'shape_parameter',
                                              'asphericity',
+                                             'shape_anisotropy',
+                                             'rg_component_ratios',
                                              'moment_of_inertia',
                                              'bbox',
                                              'bsphere',
@@ -1647,6 +1667,30 @@ class TestAtomGroup(object):
         ref = ag.shape_parameter()
         with pytest.warns(DuplicateWarning) as w:
             assert not np.allclose(ag2.shape_parameter(), ref)
+            assert len(w) == 1
+
+    def test_shape_anisotropy(self, universe):
+        s = universe.select_atoms('segid 4AKE').shape_anisotropy()
+        assert_almost_equal(s, 0.020227504542775665, 6)
+
+    def test_shape_anisotropy_duplicates(self, universe):
+        ag = universe.select_atoms('segid 4AKE')
+        ag2 = ag + ag[0]
+        ref = ag.shape_anisotropy()
+        with pytest.warns(DuplicateWarning) as w:
+            assert not np.allclose(ag2.shape_parameter(), ref)
+            assert len(w) == 1
+
+    def test_rg_component_ratios(self, universe):
+        s = universe.select_atoms('segid 4AKE').rg_component_ratios()
+        assert_almost_equal(s, np.array([1.62784 , 1.235129]), 6)
+
+    def test_rg_component_ratios_duplicates(self, universe):
+        ag = universe.select_atoms('segid 4AKE')
+        ag2 = ag + ag[0]
+        ref = ag.rg_component_ratios()
+        with pytest.warns(DuplicateWarning) as w:
+            assert not np.allclose(ag2.rg_component_ratios(), ref)
             assert len(w) == 1
 
     def test_asphericity(self, universe):
